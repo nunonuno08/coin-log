@@ -10,6 +10,7 @@ export const GACHA = [
 
 const DEFAULTS = {
   dailyGoal: 0, // the same goal for every day
+  weeklyGoals: {}, // { '2026-11-02' (Monday): 1000000 } — same fallback as months
   monthlyGoals: {}, // { '2026-11': 4500000 } — a month without one uses the latest earlier one
   prices: { premium: 30000, select: 30000, pickup: 30000 },
   dayStart: 0, // hour the day changes (late-night play can still count for the evening before)
@@ -26,7 +27,7 @@ export const state = { records: [], settings: structuredClone(DEFAULTS) };
 const byAt = (a, b) => a.at - b.at || a.createdAt - b.createdAt;
 
 function withDefaults(s = {}) {
-  return { ...structuredClone(DEFAULTS), ...s, prices: { ...DEFAULTS.prices, ...(s.prices || {}) }, monthlyGoals: { ...(s.monthlyGoals || {}) } };
+  return { ...structuredClone(DEFAULTS), ...s, prices: { ...DEFAULTS.prices, ...(s.prices || {}) }, monthlyGoals: { ...(s.monthlyGoals || {}) }, weeklyGoals: { ...(s.weeklyGoals || {}) } };
 }
 
 export async function load() {

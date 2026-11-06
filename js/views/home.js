@@ -1,6 +1,6 @@
-// Home: today's earning against the goal, this month, streak, last 7 days, record buttons.
+// Home: today's earning against the goal, this week and month, streak, last 7 days, record buttons.
 import { state, latestRecord } from '../store.js';
-import { analyze, todayKey, monthOf, monthTotal, monthGoal, streak, boxes } from '../calc.js';
+import { analyze, todayKey, monthOf, monthTotal, monthGoal, weekOf, weekTotal, weekGoal, streak, boxes } from '../calc.js';
 import { fromScreenshot, typeIn, editRecord, ICON_PHOTO, ICON_KEY } from '../record.js';
 import { num, signed, short, addDays, weekday, timeLabel, parseYmd } from '../util.js';
 
@@ -13,6 +13,15 @@ function ring(p) {
     <circle cx="60" cy="60" r="52" class="ring-fg" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - p / 100)}"/></svg>`;
 }
 
+/** A total with its goal; tapping it opens the calendar (weeks are listed under the month). */
+const goalTile = (title, v, goal, unit) =>
+  `<a class="tile card" href="#/calendar"><small>${title}</small><b class="coin-num ${v < 0 ? 'neg' : ''}">${short(v)}</b>
+    ${
+      goal
+        ? `<div class="bar"><i style="width:${pct(v, goal)}%"></i></div><span class="muted small">目標 ${short(goal)}・${Math.floor(pct(v, goal))}%</span>`
+        : `<span class="muted small">${unit}の目標は未設定</span>`
+    }</a>`;
+
 export function render(view) {
   const { days, gains } = analyze();
   const today = todayKey();
@@ -22,6 +31,9 @@ export function render(view) {
   const month = monthOf(today);
   const mt = monthTotal(days, month);
   const mGoal = monthGoal(month);
+  const wk = weekOf(today);
+  const wt = weekTotal(days, wk);
+  const wGoal = weekGoal(wk);
   const st = streak(days);
   const last = latestRecord();
   const dt = parseYmd(today);
@@ -59,10 +71,12 @@ export function render(view) {
     </div>
 
     <section class="tiles">
-      <a class="tile card" href="#/calendar"><small>${dt.getMonth() + 1}月の合計</small><b class="coin-num">${short(mt.earned)}</b>
-        ${mGoal ? `<div class="bar"><i style="width:${pct(mt.earned, mGoal)}%"></i></div><span class="muted small">目標 ${short(mGoal)}・${Math.floor(pct(mt.earned, mGoal))}%</span>` : `<span class="muted small">月の目標は未設定</span>`}</a>
-      <div class="tile card"><small>連続記録</small><b class="streak">${st}<span>日</span></b>
-        <span class="muted small">${last ? `所持 ${short(last.coins)}枚` : '　'}</span></div>
+      ${goalTile('今週の合計', wt.earned, wGoal, '週')}
+      ${goalTile(`${dt.getMonth() + 1}月の合計`, mt.earned, mGoal, '月')}
+    </section>
+    <section class="card strip">
+      <span><small>連続記録</small><b class="streak">${st}<span>日</span></b></span>
+      <span><small>所持コイン</small><b class="coin-num">${last ? num(last.coins) : '−'}</b></span>
     </section>
 
     <section class="card week">

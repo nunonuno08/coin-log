@@ -159,7 +159,7 @@ header.top h1 { margin: 0; font-size: 24px; font-weight: 800; display: flex; ali
 .cal { padding: 12px 10px; }
 .cal-head, .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
 .cal-head span { text-align: center; font-size: 11px; color: var(--muted); padding-bottom: 4px; }
-.cal-head span:first-child { color: var(--pink); }
+.cal-head span:last-child { color: var(--pink); }
 .cal-cell {
   aspect-ratio: 1 / 1.1; border-radius: 12px; padding: 4px 2px; display: flex; flex-direction: column; align-items: center; justify-content: space-between;
   background: rgba(255, 207, 90, calc(var(--a, 0) * 0.85)); border: 1px solid rgba(255, 255, 255, 0.05); font-weight: 400; min-width: 0;
@@ -274,3 +274,24 @@ header.top h1 { margin: 0; font-size: 24px; font-weight: 800; display: flex; ali
   .hero-ring { width: 140px; height: 140px; }
   .hero-in b { font-size: 24px; }
 }
+
+/* ---------- home: streak / coins strip ---------- */
+.strip { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; padding: 10px 16px; margin-bottom: 10px; }
+.strip > span { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.strip small { color: var(--muted); font-size: 12px; }
+.strip b { white-space: nowrap; }
+.strip .streak { font-size: 22px; }
+.strip .coin-num { font-size: 15px; }
+.strip > span + span { border-left: 1px solid rgba(255, 255, 255, 0.07); padding-left: 12px; }
+
+/* ---------- calendar: weeks ---------- */
+.weeks { padding: 4px 0; }
+.wk-row { display: grid; grid-template-columns: 96px 1fr; gap: 4px 10px; align-items: center; padding: 10px 16px; }
+.wk-row + .wk-row { border-top: 1px solid rgba(255, 255, 255, 0.05); }
+.wk-row.now .wk-range { color: var(--pink); font-weight: 800; }
+.wk-range { font-size: 12px; color: var(--muted); }
+.wk-sum { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+.wk-sum b { font-family: var(--round); font-size: 17px; color: var(--gold); font-variant-numeric: tabular-nums; }
+.wk-row .bar { grid-column: 2; margin: 0; height: 6px; }
+.fill-row { margin: 4px 0 10px; }
+.fill-row button { font-size: 12px; padding: 8px 6px; }

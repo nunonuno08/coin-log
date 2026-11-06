@@ -1,11 +1,34 @@
-// Calendar: one month, each day tinted by how much was earned; tap a day for its readings.
+// Calendar: one month (weeks Monday to Sunday, like the game's weekly ranking), each day tinted
+// by how much was earned, and each week's total under it. Tap a day for its readings.
 import { state } from '../store.js';
-import { analyze, todayKey, monthOf, monthTotal, monthGoal, boxes } from '../calc.js';
+import { analyze, todayKey, monthOf, monthTotal, monthGoal, weekOf, weekTotal, weekGoal, boxes } from '../calc.js';
 import { editRecord } from '../record.js';
 import { openSheet } from '../ui.js';
-import { num, signed, short, pad, dayLabel, timeLabel, ymd } from '../util.js';
+import { num, signed, short, pad, dayLabel, timeLabel, ymd, addDays, parseYmd } from '../util.js';
 
 let shown = null; // 'YYYY-MM' being looked at (kept while switching tabs)
+
+const md = k => {
+  const d = parseYmd(k);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+};
+
+/** One row per week touching the month (whole weeks, so they can spill into the next month). */
+function weekRows(days, firstDay, lastDay, today) {
+  const rows = [];
+  for (let w = weekOf(firstDay); w <= weekOf(lastDay) && w <= today; w = addDays(w, 7)) {
+    const { earned, draws } = weekTotal(days, w);
+    const goal = weekGoal(w);
+    const p = goal ? Math.max(0, Math.min(100, (earned / goal) * 100)) : 0;
+    rows.push(`<div class="wk-row ${w === weekOf(today) ? 'now' : ''}">
+      <span class="wk-range">${md(w)}〜${md(addDays(w, 6))}${w === weekOf(today) ? '<br>今週' : ''}</span>
+      <span class="wk-sum"><b class="${earned < 0 ? 'neg' : ''}">${num(earned)}</b>
+        <span class="muted small">${goal ? `${Math.floor((earned / goal) * 100)}%` : ''}${draws ? `${goal ? '・' : ''}ガチャ${draws}回` : ''}</span></span>
+      ${goal ? `<div class="bar"><i style="width:${p}%"></i></div>` : ''}
+    </div>`);
+  }
+  return rows.join('') || '<p class="muted small center">まだ記録がありません</p>';
+}
 
 export function render(view) {
   const { days, gains } = analyze();
@@ -25,7 +48,7 @@ export function render(view) {
   const avg = recorded.length ? mt.earned / keys.filter(k => days.has(k) && k <= today).length : 0;
 
   const cells = [];
-  for (let i = 0; i < first.getDay(); i++) cells.push('<span class="cal-cell blank"></span>');
+  for (let i = 0; i < (first.getDay() + 6) % 7; i++) cells.push('<span class="cal-cell blank"></span>');
   keys.forEach((k, i) => {
     const d = days.get(k);
     const v = vals[i];
@@ -53,10 +76,12 @@ export function render(view) {
       </div>
     </section>
     <section class="card cal">
-      <div class="cal-head">${[...'日月火水木金土'].map(w => `<span>${w}</span>`).join('')}</div>
+      <div class="cal-head">${[...'月火水木金土日'].map(w => `<span>${w}</span>`).join('')}</div>
       <div class="cal-grid">${cells.join('')}</div>
       <p class="muted small cal-note"><i class="est-dot"></i>点線の日は、記録がなかったため前後の稼ぎを均等に分けた推定です</p>
-    </section>`;
+    </section>
+    <h3 class="sec">週ごと<span class="muted">（月〜日）</span></h3>
+    <section class="card weeks">${weekRows(days, keys[0], keys[keys.length - 1], today)}</section>`;
 
   view.querySelectorAll('[data-mv]').forEach(b =>
     b.addEventListener('click', () => {

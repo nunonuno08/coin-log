@@ -1,14 +1,20 @@
 // Settings: goals, gacha prices, when the day changes, screenshot frame, backup.
 import { state, GACHA, saveSettings, backupData, restoreData, deleteAll } from '../store.js';
-import { todayKey, monthOf } from '../calc.js';
-import { num, digits, toast, ymd } from '../util.js';
+import { todayKey, monthOf, monthGoal, weekOf, weekGoal } from '../calc.js';
+import { num, digits, toast, ymd, addDays, parseYmd } from '../util.js';
 import { nav } from '../nav.js';
 
-export const VERSION = 'v0.1.1';
+export const VERSION = 'v0.2.0';
+
+const md = k => {
+  const d = parseYmd(k);
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+};
 
 export function render(view) {
   const s = state.settings;
   const month = monthOf(todayKey());
+  const week = weekOf(todayKey());
   const [, mm] = month.split('-').map(Number);
 
   view.innerHTML = `
@@ -18,9 +24,11 @@ export function render(view) {
     <div class="card set">
       <label class="set-row"><span>1日の目標<small>毎日同じ目標になります</small></span>
         <span class="num-in"><input type="text" inputmode="numeric" data-goal="daily" value="${s.dailyGoal ? num(s.dailyGoal) : ''}" placeholder="未設定"><i>枚</i></span></label>
+      <label class="set-row"><span>今週の目標<small>${md(week)}〜${md(addDays(week, 6))}。決めない週は前の週の目標</small></span>
+        <span class="num-in"><input type="text" inputmode="numeric" data-goal="week" value="${s.weeklyGoals[week] ? num(s.weeklyGoals[week]) : ''}" placeholder="${weekGoal(week) ? num(weekGoal(week)) : '未設定'}"><i>枚</i></span></label>
       <label class="set-row"><span>${mm}月の目標<small>決めない月は前の月の目標を使います</small></span>
-        <span class="num-in"><input type="text" inputmode="numeric" data-goal="month" value="${s.monthlyGoals[month] ? num(s.monthlyGoals[month]) : ''}" placeholder="未設定"><i>枚</i></span></label>
-      <button type="button" class="txt small" data-fill>1日の目標 × 日数 で月の目標を入れる</button>
+        <span class="num-in"><input type="text" inputmode="numeric" data-goal="month" value="${s.monthlyGoals[month] ? num(s.monthlyGoals[month]) : ''}" placeholder="${monthGoal(month) ? num(monthGoal(month)) : '未設定'}"><i>枚</i></span></label>
+      <div class="btn-row fill-row"><button type="button" class="small" data-fill="week">1日 × 7日 を週に</button><button type="button" class="small" data-fill="month">1日 × 日数 を月に</button></div>
     </div>
 
     <h3 class="sec">ガチャの値段</h3>
@@ -73,13 +81,24 @@ export function render(view) {
     pretty(e.target);
     save({ monthlyGoals: { ...s.monthlyGoals, [month]: val(e.target) } });
   });
-  view.querySelector('[data-fill]').addEventListener('click', () => {
-    if (!s.dailyGoal) return toast('先に1日の目標を入れてください');
-    const [y, m] = month.split('-').map(Number);
-    const goal = s.dailyGoal * new Date(y, m, 0).getDate();
-    view.querySelector('[data-goal="month"]').value = num(goal);
-    save({ monthlyGoals: { ...s.monthlyGoals, [month]: goal } });
+  view.querySelector('[data-goal="week"]').addEventListener('change', e => {
+    pretty(e.target);
+    save({ weeklyGoals: { ...s.weeklyGoals, [week]: val(e.target) } });
   });
+  view.querySelectorAll('[data-fill]').forEach(b =>
+    b.addEventListener('click', () => {
+      if (!s.dailyGoal) return toast('先に1日の目標を入れてください');
+      if (b.dataset.fill === 'week') {
+        const goal = s.dailyGoal * 7;
+        view.querySelector('[data-goal="week"]').value = num(goal);
+        return save({ weeklyGoals: { ...s.weeklyGoals, [week]: goal } });
+      }
+      const [y, m] = month.split('-').map(Number);
+      const goal = s.dailyGoal * new Date(y, m, 0).getDate();
+      view.querySelector('[data-goal="month"]').value = num(goal);
+      save({ monthlyGoals: { ...s.monthlyGoals, [month]: goal } });
+    }),
+  );
   view.querySelectorAll('[data-price]').forEach(input =>
     input.addEventListener('change', () => {
       const v = val(input);

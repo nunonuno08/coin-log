@@ -6,7 +6,7 @@
 // reading lie in between, it is shared evenly between them and that day (those days are
 // marked as estimated).
 import { state, GACHA } from './store.js';
-import { ymd, addDays } from './util.js';
+import { ymd, addDays, parseYmd } from './util.js';
 
 /** Calendar day a moment belongs to, honouring the "day changes at" setting. */
 export const dayOf = ms => ymd(new Date(ms - state.settings.dayStart * 3600000));
@@ -84,6 +84,37 @@ export function monthGoal(month) {
   const goals = state.settings.monthlyGoals;
   const key = Object.keys(goals)
     .filter(m => m <= month && goals[m] > 0)
+    .sort()
+    .pop();
+  return key ? goals[key] : 0;
+}
+
+/**
+ * Weeks run Monday to Sunday, like the game's weekly ranking (it resets on Monday 0:00).
+ * A week is named by its Monday, 'YYYY-MM-DD'.
+ */
+export function weekOf(day) {
+  const back = (parseYmd(day).getDay() + 6) % 7; // days since Monday
+  return addDays(day, -back);
+}
+
+export function weekTotal(days, week) {
+  let earned = 0;
+  let draws = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = days.get(addDays(week, i));
+    if (!d) continue;
+    earned += d.earned;
+    draws += d.draws;
+  }
+  return { earned, draws };
+}
+
+/** Goal for a week: its own, or the latest one set for an earlier week. */
+export function weekGoal(week) {
+  const goals = state.settings.weeklyGoals;
+  const key = Object.keys(goals)
+    .filter(w => w <= week && goals[w] > 0)
     .sort()
     .pop();
   return key ? goals[key] : 0;
