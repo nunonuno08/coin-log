@@ -14,7 +14,7 @@ const DEFAULTS = {
   monthlyGoals: {}, // { '2026-11': 4500000 } — a month without one uses the latest earlier one
   prices: { premium: 30000, select: 30000, pickup: 30000 },
   dayStart: 0, // hour the day changes (late-night play can still count for the evening before)
-  crop: null, // where the coin count is in a screenshot, as 0..1 of the image
+  frames: {}, // where the user framed the coin count, per screen shape: { '0.460': { x, y, w, h } } (0..1)
 };
 
 /**
@@ -27,7 +27,18 @@ export const state = { records: [], settings: structuredClone(DEFAULTS) };
 const byAt = (a, b) => a.at - b.at || a.createdAt - b.createdAt;
 
 function withDefaults(s = {}) {
-  return { ...structuredClone(DEFAULTS), ...s, prices: { ...DEFAULTS.prices, ...(s.prices || {}) }, monthlyGoals: { ...(s.monthlyGoals || {}) }, weeklyGoals: { ...(s.weeklyGoals || {}) } };
+  const out = {
+    ...structuredClone(DEFAULTS),
+    ...s,
+    prices: { ...DEFAULTS.prices, ...(s.prices || {}) },
+    monthlyGoals: { ...(s.monthlyGoals || {}) },
+    weeklyGoals: { ...(s.weeklyGoals || {}) },
+    frames: { ...(s.frames || {}) },
+  };
+  // Up to v0.2.0 one frame (`crop`) was used for every phone — the cause of the misreads
+  // across devices. Its screen shape is unknown, so it is dropped; the presets take over.
+  delete out.crop;
+  return out;
 }
 
 export async function load() {

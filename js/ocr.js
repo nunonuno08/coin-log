@@ -116,5 +116,7 @@ export async function readCoins(canvas, onProgress, near) {
   const distance = v => (near > 0 ? Math.abs(Math.log(v / near)) : 0);
   found.sort((a, b) => agree(b.value) - agree(a.value) || distance(a.value) - distance(b.value) || b.conf - a.conf);
   const values = [...new Set(found.map(f => f.value))];
-  return { value: values[0] ?? null, alternatives: values.slice(1) };
+  // Stray one- or two-digit reads (a bit of an icon) are not worth offering.
+  const alternatives = values.slice(1).filter(v => String(v).length >= String(values[0]).length - 2);
+  return { value: values[0] ?? null, alternatives };
 }

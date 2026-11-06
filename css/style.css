@@ -295,3 +295,4 @@ header.top h1 { margin: 0; font-size: 24px; font-weight: 800; display: flex; ali
 .wk-row .bar { grid-column: 2; margin: 0; height: 6px; }
 .fill-row { margin: 4px 0 10px; }
 .fill-row button { font-size: 12px; padding: 8px 6px; }
+.warn { margin: 8px 0 0; padding: 10px 12px; border-radius: 14px; font-size: 13px; font-weight: 700; color: #ffd27a; background: rgba(255, 170, 60, 0.12); border: 1px solid rgba(255, 170, 60, 0.4); }

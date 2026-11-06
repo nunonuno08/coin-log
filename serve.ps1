@@ -4,7 +4,7 @@ param([int]$Port = 8080)
 $root = [IO.Path]::GetFullPath($PSScriptRoot)
 $mime = @{
   '.html' = 'text/html; charset=utf-8'; '.js' = 'text/javascript; charset=utf-8'; '.css' = 'text/css; charset=utf-8'
-  '.json' = 'application/json'; '.webmanifest' = 'application/manifest+json'; '.png' = 'image/png'; '.svg' = 'image/svg+xml'
+  '.json' = 'application/json'; '.webmanifest' = 'application/manifest+json'; '.png' = 'image/png'; '.webp' = 'image/webp'; '.jpg' = 'image/jpeg'; '.svg' = 'image/svg+xml'
 }
 
 $listener = New-Object System.Net.HttpListener

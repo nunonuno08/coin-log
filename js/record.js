@@ -8,16 +8,40 @@ import { nav } from './nav.js';
 
 /**
  * Where the coin count sits on the game's main screens (home, ひろば, ranking all share the
- * top bar), measured on the user's 1206×2622 screenshots. The frame must hug the digits:
- * taking in the coin icon's neighbour "+" button made it read an extra digit.
+ * top bar), by screen shape (width ÷ height), measured on the user's own screenshots.
+ * The frame runs from just right of the coin icon to just left of the "+" button, so 8-digit
+ * counts fit; taking in the "+" made it read an extra digit, the icon an extra "1".
+ * Tested: every sample read right even with the frame moved ±0.8% sideways / ±0.4% up-down.
  */
-const TSUM_FRAME = { x: 0.515, y: 0.165, w: 0.165, h: 0.035 };
-const TSUM_RATIO = 1206 / 2622;
+const PRESETS = [
+  { ratio: 1206 / 2622, frame: { x: 0.495, y: 0.165, w: 0.178, h: 0.038 } }, // iPhone (Face ID models)
+  { ratio: 1640 / 2360, frame: { x: 0.488, y: 0.031, w: 0.18, h: 0.029 } }, // iPad
+];
 
-/** The frame to use first: the one chosen before, or the known spot on same-shaped screens. */
+/**
+ * A gain that is hard to believe, usually a misread number or a forgotten gacha: coins went
+ * down although no gacha was entered, or went up faster than play allows (top coin earners
+ * make about 4,500 a minute, so 500,000 an hour is a generous ceiling).
+ */
+function doubt(gain, ms) {
+  if (gain < -20000) return '前回より減っています。ガチャの入れ忘れか、数字の読み間違いかもしれません。';
+  const hours = Math.max(1, ms / 3600000);
+  if (gain > 500000 * hours) return '前回から増えすぎています。数字の読み間違いかもしれません。';
+  return '';
+}
+
+const shapeOf = img => img.naturalWidth / img.naturalHeight;
+const shapeKey = img => shapeOf(img).toFixed(3);
+
+/**
+ * The frame to use: one the user chose for this screen shape, else a known preset,
+ * else null (the user frames it once and it is remembered for this shape only).
+ */
 function startFrame(img) {
-  if (state.settings.crop) return state.settings.crop;
-  return Math.abs(img.naturalWidth / img.naturalHeight - TSUM_RATIO) < 0.012 ? TSUM_FRAME : null;
+  const shape = shapeOf(img);
+  const saved = Object.entries(state.settings.frames).find(([k]) => Math.abs(Number(k) - shape) < 0.004);
+  if (saved) return saved[1];
+  return PRESETS.find(p => Math.abs(p.ratio - shape) < 0.01)?.frame || null;
 }
 
 /** Main way: pick a screenshot, read the coin count where it was last time, confirm. */
@@ -34,9 +58,9 @@ export async function fromScreenshot() {
     let rect = startFrame(img);
     for (;;) {
       if (!rect) {
-        rect = await chooseRegion(img, state.settings.crop || TSUM_FRAME);
+        rect = await chooseRegion(img, startFrame(img) || PRESETS[0].frame);
         if (!rect) return;
-        await saveSettings({ crop: rect });
+        await saveSettings({ frames: { ...state.settings.frames, [shapeKey(img)]: rect } });
       }
       const canvas = cut(img, rect);
       const res = await editRecord(null, { canvas });
@@ -127,8 +151,10 @@ export function editRecord(record, { canvas } = {}) {
         if (!prev) return (result.innerHTML = `<p class="muted small center">次の記録から、稼いだコインが出ます</p>`);
         const spent = spentOf(r);
         const gain = c - prev.coins + spent;
+        const warn = doubt(gain, at() - prev.at);
         result.innerHTML = `<div class="gain ${gain < 0 ? 'neg' : ''}"><small>この記録の稼ぎ</small><b>${signed(gain)}</b>
-          <span class="muted small">増減 ${signed(c - prev.coins)}${spent ? `　＋ ガチャ ${num(spent)}` : ''}</span></div>`;
+          <span class="muted small">増減 ${signed(c - prev.coins)}${spent ? `　＋ ガチャ ${num(spent)}` : ''}</span></div>
+          ${warn ? `<p class="warn">⚠ ${warn}</p>` : ''}`;
       };
 
       input.addEventListener('input', () => {

@@ -4,7 +4,7 @@ import { todayKey, monthOf, monthGoal, weekOf, weekGoal } from '../calc.js';
 import { num, digits, toast, ymd, addDays, parseYmd } from '../util.js';
 import { nav } from '../nav.js';
 
-export const VERSION = 'v0.2.0';
+export const VERSION = 'v0.3.0';
 
 const md = k => {
   const d = parseYmd(k);
@@ -44,8 +44,8 @@ export function render(view) {
     <div class="card set">
       <label class="set-row"><span>日付の切り替え<small>夜中のプレイを前の日に入れたいときに</small></span>
         <select data-daystart>${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${s.dayStart === h ? 'selected' : ''}>${h}:00</option>`).join('')}</select></label>
-      <div class="set-row"><span>スクショの読み取り位置<small>${s.crop ? '自分で選んだ場所' : '自動（ツムツムのいつもの場所）'}</small></span>
-        <button type="button" class="small" data-crop ${s.crop ? '' : 'disabled'}>自動に戻す</button></div>
+      <div class="set-row"><span>スクショの読み取り位置<small>iPhone・iPad は登録済み${Object.keys(s.frames).length ? `／自分で選んだ機種 ${Object.keys(s.frames).length}種類` : ''}</small></span>
+        <button type="button" class="small" data-crop ${Object.keys(s.frames).length ? '' : 'disabled'}>自動に戻す</button></div>
     </div>
 
     <h3 class="sec">記録忘れの防止</h3>
@@ -112,7 +112,7 @@ export function render(view) {
   );
   view.querySelector('[data-daystart]').addEventListener('change', e => save({ dayStart: Number(e.target.value) }));
   view.querySelector('[data-crop]').addEventListener('click', async () => {
-    await save({ crop: null }, '自動の場所に戻しました');
+    await save({ frames: {} }, '自動の場所に戻しました');
     nav.rerender();
   });
 
