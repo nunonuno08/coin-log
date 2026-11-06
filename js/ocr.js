@@ -81,30 +81,11 @@ function variants(src) {
   ];
 }
 
-/**
- * "1,234,567" → { value: 1234567, formed: true }. Takes the longest run of digits (commas /
- * dots / spaces inside allowed). `formed` = the separators sit every 3 digits as they should,
- * which tells a clean reading from one where a comma was taken for a digit.
- */
+/** The game shows the count without commas ("711087"); takes the longest run of digits. */
 export function parseCoins(text) {
-  const runs = String(text).normalize('NFKC').match(/\d[\d,.\s']*\d|\d/g) || [];
-  if (!runs.length) return null;
-  const best = runs.sort((a, b) => b.replace(/\D/g, '').length - a.replace(/\D/g, '').length)[0];
-  const compact = best.replace(/\s/g, '');
-  return { value: Number(compact.replace(/\D/g, '')), formed: /^\d{1,3}([,.']\d{3})+$/.test(compact) };
-}
-
-/**
- * When the commas were read as digits ("1,278,000" → "1278007000"… ), every 4th character
- * from the right is a misread comma. Returns the number with those removed, or null when the
- * length can't come from that mistake.
- */
-export function withoutCommaDigits(s) {
-  const n = s.length;
-  if (n < 5) return null;
-  const kept = [...s].filter((_, i) => (n - 1 - i) % 4 !== 3).join('');
-  const m = kept.length;
-  return m + Math.floor((m - 1) / 3) === n ? Number(kept) : null;
+  const runs = String(text).normalize('NFKC').match(/\d[\d\s]*\d|\d/g) || [];
+  const nums = runs.map(r => r.replace(/\D/g, '')).sort((a, b) => b.length - a.length);
+  return nums.length ? Number(nums[0]) : null;
 }
 
 /**
@@ -118,31 +99,22 @@ export async function readCoins(canvas, onProgress, near) {
   const worker = await Tesseract.createWorker('eng', 1);
   const found = [];
   try {
-    await worker.setParameters({ tessedit_char_whitelist: '0123456789,.', tessedit_pageseg_mode: '7' });
+    await worker.setParameters({ tessedit_char_whitelist: '0123456789', tessedit_pageseg_mode: '7' });
     const imgs = variants(canvas);
     for (const [i, img] of imgs.entries()) {
       onProgress?.(`読み取り中… ${i + 1}/${imgs.length}`);
       const { data } = await worker.recognize(img);
-      const p = parseCoins(data.text);
-      if (!p || !(p.value > 0)) continue;
-      found.push({ ...p, conf: data.confidence, repaired: false });
-      const fixed = p.formed ? null : withoutCommaDigits(String(p.value));
-      if (fixed) found.push({ value: fixed, formed: false, conf: data.confidence, repaired: true });
+      const value = parseCoins(data.text);
+      if (value > 0) found.push({ value, conf: data.confidence });
     }
   } finally {
     await worker.terminate();
   }
-  // With an earlier reading to compare with, the closest of the clean "1,234,567" readings and
-  // repaired ones wins (a digit misread inside a clean reading also happens). Without one:
-  // clean readings first, then the number as read, then its repaired version.
-  const distance = v => Math.abs(Math.log(v / near));
+  // Readings that both versions agree on first, then the one closest to the last count,
+  // then the more confident one.
   const agree = v => found.filter(f => f.value === v).length;
-  const tidy = f => f.formed || f.repaired;
-  found.sort((a, b) =>
-    near > 0
-      ? tidy(b) - tidy(a) || distance(a.value) - distance(b.value) || agree(b.value) - agree(a.value) || b.conf - a.conf
-      : b.formed - a.formed || a.repaired - b.repaired || agree(b.value) - agree(a.value) || b.conf - a.conf,
-  );
+  const distance = v => (near > 0 ? Math.abs(Math.log(v / near)) : 0);
+  found.sort((a, b) => agree(b.value) - agree(a.value) || distance(a.value) - distance(b.value) || b.conf - a.conf);
   const values = [...new Set(found.map(f => f.value))];
   return { value: values[0] ?? null, alternatives: values.slice(1) };
 }

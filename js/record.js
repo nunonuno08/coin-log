@@ -6,6 +6,20 @@ import { readCoins } from './ocr.js';
 import { uid, num, signed, digits, toLocalInput, dayLabel, timeLabel, ymd, toast } from './util.js';
 import { nav } from './nav.js';
 
+/**
+ * Where the coin count sits on the game's main screens (home, ひろば, ranking all share the
+ * top bar), measured on the user's 1206×2622 screenshots. The frame must hug the digits:
+ * taking in the coin icon's neighbour "+" button made it read an extra digit.
+ */
+const TSUM_FRAME = { x: 0.515, y: 0.165, w: 0.165, h: 0.035 };
+const TSUM_RATIO = 1206 / 2622;
+
+/** The frame to use first: the one chosen before, or the known spot on same-shaped screens. */
+function startFrame(img) {
+  if (state.settings.crop) return state.settings.crop;
+  return Math.abs(img.naturalWidth / img.naturalHeight - TSUM_RATIO) < 0.012 ? TSUM_FRAME : null;
+}
+
 /** Main way: pick a screenshot, read the coin count where it was last time, confirm. */
 export async function fromScreenshot() {
   const file = await pickImage(); // first thing, straight from the tap
@@ -17,10 +31,10 @@ export async function fromScreenshot() {
     return toast(err.message);
   }
   try {
-    let rect = state.settings.crop;
+    let rect = startFrame(img);
     for (;;) {
       if (!rect) {
-        rect = await chooseRegion(img, state.settings.crop);
+        rect = await chooseRegion(img, state.settings.crop || TSUM_FRAME);
         if (!rect) return;
         await saveSettings({ crop: rect });
       }

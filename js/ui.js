@@ -64,7 +64,7 @@ export function chooseRegion(img, start) {
   return openSheet({
     title: 'コイン数の場所を選ぶ',
     tall: true,
-    html: `<p class="hint">枠の四隅を動かして、<b>所持コインの数字だけ</b>を囲んでください。<br>場所は覚えるので、次からは自動で読み取ります。</p>
+    html: `<p class="hint">枠の四隅を動かして、<b>所持コインの数字だけ</b>をぴったり囲んでください（左のコインの絵と右の＋ボタンは入れない）。<br>場所は覚えるので、次からは自動で読み取ります。</p>
       <div class="crop-stage"><div class="crop-wrap"><img src="${img.src}" alt="" draggable="false">
         <div class="crop-box"><i data-h="nw"></i><i data-h="ne"></i><i data-h="sw"></i><i data-h="se"></i></div></div></div>
       <button type="button" class="primary block" data-ok>この場所で読み取る</button>`,

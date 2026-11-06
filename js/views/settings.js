@@ -4,7 +4,7 @@ import { todayKey, monthOf } from '../calc.js';
 import { num, digits, toast, ymd } from '../util.js';
 import { nav } from '../nav.js';
 
-export const VERSION = 'v0.1.0';
+export const VERSION = 'v0.1.1';
 
 export function render(view) {
   const s = state.settings;
@@ -36,8 +36,8 @@ export function render(view) {
     <div class="card set">
       <label class="set-row"><span>日付の切り替え<small>夜中のプレイを前の日に入れたいときに</small></span>
         <select data-daystart>${[0, 1, 2, 3, 4, 5, 6].map(h => `<option value="${h}" ${s.dayStart === h ? 'selected' : ''}>${h}:00</option>`).join('')}</select></label>
-      <div class="set-row"><span>スクショの読み取り位置<small>${s.crop ? '覚えています' : 'まだ選んでいません'}</small></span>
-        <button type="button" class="small" data-crop ${s.crop ? '' : 'disabled'}>選び直す</button></div>
+      <div class="set-row"><span>スクショの読み取り位置<small>${s.crop ? '自分で選んだ場所' : '自動（ツムツムのいつもの場所）'}</small></span>
+        <button type="button" class="small" data-crop ${s.crop ? '' : 'disabled'}>自動に戻す</button></div>
     </div>
 
     <h3 class="sec">記録忘れの防止</h3>
@@ -93,7 +93,7 @@ export function render(view) {
   );
   view.querySelector('[data-daystart]').addEventListener('change', e => save({ dayStart: Number(e.target.value) }));
   view.querySelector('[data-crop]').addEventListener('click', async () => {
-    await save({ crop: null }, '次のスクショで場所を選び直します');
+    await save({ crop: null }, '自動の場所に戻しました');
     nav.rerender();
   });
 
