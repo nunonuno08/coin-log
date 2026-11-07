@@ -38,20 +38,68 @@ export const closeAllSheets = () => document.querySelectorAll('.sheet-backdrop')
  */
 export function pickImage() {
   return new Promise(resolve => {
+    // The input lives in the page until the pick is over: iOS can drop a detached input while
+    // the photo picker is up, and then the choice never arrives ("nothing happens").
+    document.querySelector('#image-picker')?.remove();
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = 'image/*';
-    input.addEventListener('change', () => resolve(input.files[0] || null));
-    input.addEventListener('cancel', () => resolve(null));
+    input.id = 'image-picker';
+    input.hidden = true;
+    document.body.append(input);
+    let done = false;
+    const finish = file => {
+      if (done) return;
+      done = true;
+      window.removeEventListener('focus', onFocus);
+      input.remove();
+      markPicking(false);
+      resolve(file);
+    };
+    // Back-up for when the change event is lost: the file is already on the input once the
+    // page has focus again.
+    const onFocus = () => setTimeout(() => input.files?.[0] && finish(input.files[0]), 600);
+    input.addEventListener('change', () => finish(input.files[0] || null));
+    input.addEventListener('cancel', () => finish(null));
+    window.addEventListener('focus', onFocus);
+    markPicking(true);
     input.click();
   });
+}
+
+/**
+ * Remembers that the photo picker is open. If iOS restarts the app meanwhile (low memory),
+ * the chosen photo is lost; the next start sees the mark and says so instead of nothing.
+ */
+const PICKING = 'coinlog-picking';
+function markPicking(on) {
+  try {
+    on ? localStorage.setItem(PICKING, String(Date.now())) : localStorage.removeItem(PICKING);
+  } catch {}
+}
+export function restartedWhilePicking() {
+  try {
+    const t = Number(localStorage.getItem(PICKING));
+    localStorage.removeItem(PICKING);
+    return t > 0 && Date.now() - t < 5 * 60000;
+  } catch {
+    return false;
+  }
 }
 
 export function loadImage(file) {
   return new Promise((resolve, reject) => {
     const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = () => reject(new Error('画像を開けませんでした'));
+    // Never wait forever on a picture that will not open.
+    const timer = setTimeout(() => reject(new Error('画像の読み込みに時間がかかりすぎました')), 15000);
+    img.onload = () => {
+      clearTimeout(timer);
+      resolve(img);
+    };
+    img.onerror = () => {
+      clearTimeout(timer);
+      reject(new Error('画像を開けませんでした'));
+    };
     img.src = URL.createObjectURL(file);
   });
 }

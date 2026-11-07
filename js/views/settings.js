@@ -4,7 +4,7 @@ import { todayKey, monthOf, monthGoal, weekOf, weekGoal } from '../calc.js';
 import { num, digits, toast, ymd, addDays, parseYmd } from '../util.js';
 import { nav } from '../nav.js';
 
-export const VERSION = 'v0.3.0';
+export const VERSION = 'v0.3.1';
 
 const md = k => {
   const d = parseYmd(k);

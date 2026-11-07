@@ -48,11 +48,12 @@ function startFrame(img) {
 export async function fromScreenshot() {
   const file = await pickImage(); // first thing, straight from the tap
   if (!file) return;
+  toast('画像を読み込んでいます…');
   let img;
   try {
     img = await loadImage(file);
   } catch (err) {
-    return toast(err.message);
+    return toast(`${err.message}（${file.type || '種類不明'}・${Math.round(file.size / 1024)}KB）`);
   }
   try {
     let rect = startFrame(img);
