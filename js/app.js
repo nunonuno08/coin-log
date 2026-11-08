@@ -1,4 +1,4 @@
-// Start-up and the four tabs (#/ home, #/calendar, #/history, #/settings).
+// Start-up and the tabs (#/ home, #/calendar, #/history, #/friends, #/settings).
 import { load } from './store.js';
 import { nav } from './nav.js';
 import { toast } from './util.js';
@@ -8,10 +8,12 @@ import * as home from './views/home.js';
 import * as calendar from './views/calendar.js';
 import * as history from './views/history.js';
 import * as settings from './views/settings.js';
+import * as friendsView from './views/friends.js';
+import { initCloud, statusEvents } from './cloud.js';
 
 const root = document.getElementById('app');
 const fab = document.getElementById('fab');
-const views = { '': home, calendar, history, settings };
+const views = { '': home, calendar, history, friends: friendsView, settings };
 
 function route() {
   closeAllSheets();
@@ -55,6 +57,8 @@ window.addEventListener('unhandledrejection', e => toast(`問題が起きまし�
     root.innerHTML = `<div class="empty">データを読み込めませんでした。<br>${String(err.message || err)}</div>`;
     return;
   }
+  // Before the first screen, so it already knows whether this phone is logged in.
+  initCloud();
   route();
   if (restartedWhilePicking()) {
     toast('画像を選んでいる間に、iPhone がアプリを再起動したため読み込めませんでした。ほかのアプリを閉じてから、もう一度お試しください。', 8000);
@@ -72,3 +76,17 @@ window.addEventListener('unhandledrejection', e => toast(`問題が起きまし�
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 })();
+
+/**
+ * Redraws home / なかま when the cloud brings news (friends' totals, readings from another
+ * device, sync state) — but never under an open sheet or while something is being typed.
+ */
+const refreshOn = pages => () => {
+  const page = (location.hash || '#/').replace(/^#\/?/, '').split(/[/?]/)[0];
+  const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement?.tagName || '');
+  if (document.body.classList.contains('modal-open') || typing) return;
+  if (pages.includes(page)) nav.rerender();
+};
+statusEvents.addEventListener('received', refreshOn(['', 'calendar', 'history', 'friends']));
+statusEvents.addEventListener('friends', refreshOn(['', 'friends']));
+statusEvents.addEventListener('change', refreshOn(['friends', 'settings']));

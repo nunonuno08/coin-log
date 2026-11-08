@@ -296,3 +296,47 @@ header.top h1 { margin: 0; font-size: 24px; font-weight: 800; display: flex; ali
 .fill-row { margin: 4px 0 10px; }
 .fill-row button { font-size: 12px; padding: 8px 6px; }
 .warn { margin: 8px 0 0; padding: 10px 12px; border-radius: 14px; font-size: 13px; font-weight: 700; color: #ffd27a; background: rgba(255, 170, 60, 0.12); border: 1px solid rgba(255, 170, 60, 0.4); }
+
+/* ---------- なかま ---------- */
+#tabbar a { font-size: 9.5px; }
+.banner { display: block; padding: 10px 14px; border-radius: 14px; font-size: 13px; margin: 0 0 10px; }
+.banner.warn { background: rgba(255, 138, 138, 0.12); color: var(--neg); }
+a.btn { display: block; text-align: center; font-weight: 700; padding: 12px; border-radius: 14px; background: var(--surface2); margin: 8px 0 12px; }
+.race { margin-bottom: 10px; }
+.race h2 { display: flex; justify-content: space-between; align-items: baseline; }
+.race-row { display: grid; grid-template-columns: 84px 1fr 56px; gap: 8px; align-items: center; margin: 8px 0; }
+.race-name { font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.race-name small { color: var(--muted); font-weight: 400; font-size: 10px; }
+.race-track { height: 14px; border-radius: 99px; background: rgba(255, 255, 255, 0.07); overflow: hidden; }
+.race-track i { display: block; height: 100%; border-radius: inherit; transition: width 0.5s; box-shadow: 0 0 10px rgba(255, 255, 255, 0.15); }
+.race-v { font-family: var(--round); text-align: right; font-variant-numeric: tabular-nums; }
+.race-note { margin: 10px 0 0; }
+.people { display: grid; gap: 10px; margin-bottom: 10px; }
+.person { border-left: 4px solid var(--c); padding: 12px 14px; }
+.person-head { display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.person-head b { font-family: var(--round); font-size: 17px; color: var(--c); }
+.person-head > span { margin-left: auto; }
+.person-stats { display: grid; grid-template-columns: 1.4fr 1fr 1fr 0.8fr; gap: 6px; }
+.person-stats span { display: flex; flex-direction: column; min-width: 0; }
+.person-stats small { color: var(--muted); font-size: 10px; }
+.person-stats b { font-size: 14px; white-space: nowrap; }
+.wins { display: flex; justify-content: center; align-items: center; gap: 18px; margin: 4px 0 12px; }
+.wins span { display: flex; flex-direction: column; align-items: center; }
+.wins b { font-family: var(--round); font-size: 34px; line-height: 1.1; }
+.wins small { color: var(--muted); font-size: 12px; }
+.wins i { font-style: normal; color: var(--muted); font-size: 20px; }
+.wk-h-row { display: grid; grid-template-columns: 92px 1fr auto; gap: 8px; align-items: center; padding: 8px 0; border-top: 1px solid rgba(255, 255, 255, 0.05); font-size: 13px; }
+.login .seg { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg2); padding: 4px; border-radius: 14px; margin: 12px 0 16px; }
+.login .seg button { background: none; padding: 9px; }
+.login .seg button.on { background: var(--surface2); color: var(--gold); }
+.name-in { width: 150px; text-align: right; padding: 8px 10px; }
+.switch { -webkit-appearance: none; appearance: none; width: 50px; height: 30px; border-radius: 99px; background: var(--surface2); position: relative; border: 0; padding: 0; flex: none; transition: background 0.2s; }
+.switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; transition: transform 0.2s; }
+.switch:checked { background: var(--gold2); }
+.switch:checked::after { transform: translateX(20px); }
+.fr-strip { display: flex; align-items: center; gap: 8px; padding: 10px 14px; margin-bottom: 10px; }
+.fr-item { flex: 1; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 6px; font-size: 13px; }
+.fr-item + .fr-item { border-left: 1px solid rgba(255, 255, 255, 0.07); padding-left: 10px; }
+.fr-item i { width: 8px; height: 8px; border-radius: 50%; align-self: center; }
+.fr-item small { width: 100%; font-size: 11px; }
+.fr-go { color: var(--muted); font-size: 22px; }

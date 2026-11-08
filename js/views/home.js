@@ -2,9 +2,26 @@
 import { state, latestRecord } from '../store.js';
 import { analyze, todayKey, monthOf, monthTotal, monthGoal, weekOf, weekTotal, weekGoal, streak, boxes } from '../calc.js';
 import { fromScreenshot, typeIn, editRecord, ICON_PHOTO, ICON_KEY } from '../record.js';
-import { num, signed, short, addDays, weekday, timeLabel, parseYmd } from '../util.js';
+import { num, signed, short, addDays, weekday, timeLabel, parseYmd, esc } from '../util.js';
+import { status, friends } from '../cloud.js';
+import { colorOf } from './friends.js';
 
 const pct = (v, goal) => (goal > 0 ? Math.max(0, Math.min(100, (v / goal) * 100)) : 0);
+
+/** One line per friend: today's earning next to mine, tapping opens なかま. */
+function friendsStrip(today, mine) {
+  if (status.state === 'signedOut') return '';
+  const others = friends().filter(p => !p.me);
+  if (!others.length) return '';
+  return `<a class="card fr-strip" href="#/friends">${others
+    .map(p => {
+      const v = p.days?.[today] || 0;
+      const diff = mine - v;
+      return `<span class="fr-item"><i style="background:${colorOf(p.username)}"></i><b>${esc(p.name)}</b> 今日 <b class="coin-num">${short(v)}</b>
+        <small class="${diff >= 0 ? 'gold' : 'neg'}">${diff > 0 ? `あなたが ${short(diff)} リード` : diff < 0 ? `あと ${short(-diff)} で逆転` : '同点'}</small></span>`;
+    })
+    .join('')}<span class="fr-go">›</span></a>`;
+}
 
 function ring(p) {
   const C = 2 * Math.PI * 52;
@@ -74,6 +91,7 @@ export function render(view) {
       ${goalTile('今週の合計', wt.earned, wGoal, '週')}
       ${goalTile(`${dt.getMonth() + 1}月の合計`, mt.earned, mGoal, '月')}
     </section>
+    ${friendsStrip(today, earned)}
     <section class="card strip">
       <span><small>連続記録</small><b class="streak">${st}<span>日</span></b></span>
       <span><small>所持コイン</small><b class="coin-num">${last ? num(last.coins) : '−'}</b></span>

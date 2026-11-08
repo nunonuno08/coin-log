@@ -1,15 +1,40 @@
-// Settings: goals, gacha prices, when the day changes, screenshot frame, backup.
+// Settings: account (cloud), goals, gacha prices, when the day changes, screenshot frame, backup.
 import { state, GACHA, saveSettings, backupData, restoreData, deleteAll } from '../store.js';
 import { todayKey, monthOf, monthGoal, weekOf, weekGoal } from '../calc.js';
-import { num, digits, toast, ymd, addDays, parseYmd } from '../util.js';
+import { num, digits, toast, ymd, addDays, parseYmd, esc } from '../util.js';
+import { cloudReady, status, pendingCount, syncNow, signOut } from '../cloud.js';
+import { ago } from './friends.js';
 import { nav } from '../nav.js';
 
-export const VERSION = 'v0.3.1';
+export const VERSION = 'v0.4.0';
 
 const md = k => {
   const d = parseYmd(k);
   return `${d.getMonth() + 1}/${d.getDate()}`;
 };
+
+const SYNC_LABEL = { idle: '同期済み', syncing: '同期中…', offline: 'オフライン（つながったら同期します）', error: '同期できませんでした' };
+
+/** Account / sync / what friends see. Empty until the cloud is set up. */
+function accountHtml(s) {
+  if (!cloudReady()) return '';
+  if (status.state === 'signedOut') {
+    return `<h3 class="sec">アカウント</h3>
+    <div class="card set"><p class="small">ログインしていません。記録はこの iPhone の中だけにあります。</p>
+      <a class="btn block center" href="#/friends">ログイン・登録する</a></div>`;
+  }
+  const n = pendingCount();
+  return `<h3 class="sec">アカウント</h3>
+    <div class="card set">
+      <div class="set-row"><span>${esc(status.username)}<small>${SYNC_LABEL[status.state] || ''}${status.lastSync ? `・最終 ${ago(status.lastSync)}` : ''}${n ? `・未送信 ${n}件` : ''}</small></span>
+        <button type="button" class="small" data-sync>今すぐ同期</button></div>
+      ${status.state === 'error' ? `<p class="small neg">${esc(status.error)}</p>` : ''}
+      <label class="set-row"><span>なかまに見せる名前</span><input class="name-in" data-name value="${esc(s.name)}" placeholder="${esc(status.username)}"></label>
+      <label class="set-row"><span>なかまに数字を見せる<small>所持コイン・今日・今週・連続記録だけ</small></span>
+        <input type="checkbox" class="switch" data-share ${s.share ? 'checked' : ''}></label>
+      <button type="button" class="txt small" data-logout>ログアウト</button>
+    </div>`;
+}
 
 export function render(view) {
   const s = state.settings;
@@ -19,6 +44,7 @@ export function render(view) {
 
   view.innerHTML = `
     <header class="top"><h1>設定</h1></header>
+    ${accountHtml(s)}
 
     <h3 class="sec">目標</h3>
     <div class="card set">
@@ -72,6 +98,20 @@ export function render(view) {
   };
   const val = input => (digits(input.value) ? Number(digits(input.value)) : 0);
   const pretty = input => (input.value = val(input) ? num(val(input)) : '');
+
+  view.querySelector('[data-sync]')?.addEventListener('click', () => syncNow());
+  view.querySelector('[data-name]')?.addEventListener('change', e => save({ name: e.target.value.trim() }));
+  view.querySelector('[data-share]')?.addEventListener('change', e => save({ share: e.target.checked }, e.target.checked ? 'なかまに見せます' : 'なかまに見せないようにしました'));
+  view.querySelector('[data-logout]')?.addEventListener('click', async () => {
+    const n = pendingCount();
+    const msg = n
+      ? `まだクラウドに送っていない変更が ${n}件 あります。ログアウトすると、ほかの端末には届きません。ログアウトしますか？`
+      : 'ログアウトしますか？（この iPhone の記録は残ります）';
+    if (!confirm(msg)) return;
+    await signOut();
+    toast('ログアウトしました');
+    nav.rerender();
+  });
 
   view.querySelector('[data-goal="daily"]').addEventListener('change', e => {
     pretty(e.target);
@@ -144,7 +184,7 @@ export function render(view) {
     input.click();
   });
   view.querySelector('[data-wipe]').addEventListener('click', async () => {
-    if (!confirm('すべての記録と設定を削除します。元に戻せません。よろしいですか？')) return;
+    if (!confirm(`すべての記録と設定を削除します。${status.state !== 'signedOut' ? 'ログイン中なので、クラウドとほかの端末からも消えます。' : ''}元に戻せません。よろしいですか？`)) return;
     await deleteAll();
     toast('削除しました');
     nav.rerender();

@@ -1,7 +1,7 @@
 // Serves the app from cache first (works offline) and refreshes the cache in the background,
 // so updates appear on the next launch (app.js then reloads once).
 // Raise CACHE with every release.
-const CACHE = 'coinlog-v5';
+const CACHE = 'coinlog-v6';
 const ASSETS = [
   './',
   'index.html',
@@ -16,10 +16,13 @@ const ASSETS = [
   'js/ui.js',
   'js/ocr.js',
   'js/record.js',
+  'js/cloud.js',
+  'js/vendor/supabase.js',
   'js/views/home.js',
   'js/views/calendar.js',
   'js/views/history.js',
   'js/views/settings.js',
+  'js/views/friends.js',
   'icons/icon-180.png',
   'icons/icon-192.png',
   'icons/icon-512.png',
