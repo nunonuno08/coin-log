@@ -10,7 +10,7 @@
 - リポジトリ: https://github.com/nunonuno08/coin-log （公開。main に push すると GitHub Pages に1〜2分で反映）
 - クラウド: Supabase プロジェクト **coin-log**（https://mnwhuizxfxyrsbqfyrxx.supabase.co、東京、無料。ライブ用 live-log とは別）。
   publishable key は `js/cloud.js`。Secret / service_role キーは**絶対に使わない・受け取らない**。テーブル定義は `supabase/schema.sql`（2026-11-08 実行済み）。
-  Confirm email はオフ。招待は SQL Editor で `insert into public.signup_allowlist (username, note) values ('名前', 'メモ');`（dan / yumi を案内済み・登録されたかは未確認）。
+  Confirm email はオフ。招待は SQL Editor で `insert into public.signup_allowlist (username, note) values ('名前', 'メモ');`（招待済みのユーザー名: **dan**（本人）と **haha**（Yumi さん。yumi ではない）— 2026-11-08 ユーザー報告）。
   休止対策: `.github/workflows/keepalive.yml` が6時間ごとに `rpc/ping`。止まったらダッシュボードで Resume project（Upgrade は押さない）。
   ログイン: ユーザー名 → `ユーザー名@nunonuno08.github.io`（Supabase に受け付けられることを確認済み）。パスワード再設定はない。
   **私（Claude）は本物のアカウントを作れない**ので、ログイン・同期の通しテストはユーザーの実機で行う。
