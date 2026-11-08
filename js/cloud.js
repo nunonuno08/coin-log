@@ -5,10 +5,10 @@ import { state, changes, readTombs, writeTombs, applyRemote, removeRemote, lates
 import { analyze, todayKey, weekOf, weekTotal, streak } from './calc.js';
 import { addDays } from './util.js';
 
-// Filled in once the Supabase project exists (both values are meant to be public: the
+// Supabase project "coin-log" (separate from ライブ記録's). Both values are meant to be public: the
 // database only lets each account change its own rows).
-const SUPABASE_URL = '';
-const SUPABASE_KEY = '';
+const SUPABASE_URL = 'https://mnwhuizxfxyrsbqfyrxx.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_b2gZbljKOqfs53VdX9Z9GQ_ayxkmhfU';
 export const cloudReady = () => !!(SUPABASE_URL && SUPABASE_KEY);
 
 /** Supabase logs in by e-mail; the user name becomes this address (never shown, never mailed). */

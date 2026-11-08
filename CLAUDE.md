@@ -8,7 +8,13 @@
   の経験を活かして作る。迷ったらそちらの `CLAUDE.md` とコードを参考にする（コピーして使ってよい）。
 - 公開URL: https://nunonuno08.github.io/coin-log/
 - リポジトリ: https://github.com/nunonuno08/coin-log （公開。main に push すると GitHub Pages に1〜2分で反映）
-- 現在のバージョン: v0.3.1（`js/views/settings.js` の `VERSION`。アプリ名は「コイン記録」）
+- クラウド: Supabase プロジェクト **coin-log**（https://mnwhuizxfxyrsbqfyrxx.supabase.co、東京、無料。ライブ用 live-log とは別）。
+  publishable key は `js/cloud.js`。Secret / service_role キーは**絶対に使わない・受け取らない**。テーブル定義は `supabase/schema.sql`（2026-11-08 実行済み）。
+  Confirm email はオフ。招待は SQL Editor で `insert into public.signup_allowlist (username, note) values ('名前', 'メモ');`（dan / yumi を案内済み・登録されたかは未確認）。
+  休止対策: `.github/workflows/keepalive.yml` が6時間ごとに `rpc/ping`。止まったらダッシュボードで Resume project（Upgrade は押さない）。
+  ログイン: ユーザー名 → `ユーザー名@nunonuno08.github.io`（Supabase に受け付けられることを確認済み）。パスワード再設定はない。
+  **私（Claude）は本物のアカウントを作れない**ので、ログイン・同期の通しテストはユーザーの実機で行う。
+- 現在のバージョン: v0.4.0（`js/views/settings.js` の `VERSION`。アプリ名は「コイン記録」）
 
 ## このメモの書き方（必ず守る）
 
@@ -198,3 +204,4 @@
 - 2026-11-08: **v0.4.0（作成中・未公開）** クラウド同期＋なかま機能のコードを作成。`supabase/schema.sql`（records / summaries / signup_allowlist / ping）、
   `js/cloud.js`（ユーザー名ログイン・同期・なかまの数字）、`js/views/friends.js`（なかまタブ）、設定にアカウント欄、ホームになかまの一行。
   `js/cloud.js` の `SUPABASE_URL` / `SUPABASE_KEY` が空のあいだは、なかまタブは「準備中」。Supabase プロジェクト作成待ち。
+- 2026-11-08: **v0.4.0 公開** Supabase（coin-log）を接続、休止対策を追加。なかま画面・ホームの一行・設定のアカウント欄は、ログイン状態を再現して表示を確認（実アカウントでの通しは未確認）。
